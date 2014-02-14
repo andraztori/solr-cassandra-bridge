@@ -53,17 +53,11 @@ import me.prettyprint.hector.api.query.MultigetSliceQuery;
 import me.prettyprint.hector.api.query.QueryResult;
 
 
-
-
-import org.apache.solr.update.UpdateLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-
 import java.io.IOException;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.List;
 import java.util.Set;
@@ -189,27 +183,6 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 	}
 
 
-	////////////////////////////////////////////
-	///	SolrInfoMBean
-	////////////////////////////////////////////
-	
-	@Override
-	public String getDescription() {
-		return "SorlCassandraBridge";
-	}
-	
-	@Override
-	public String getSource() {
-		return "$URL: https://github.com/andraztori/solr-cassandra-bridge $";
-	}
-	
-	@Override
-	public URL[] getDocs() {
-		return null;
-	}
-
-
-
 	// Java does not allow static declarations in subclasses, so we declare then here
 	private static final StringSerializer stringSerializer = StringSerializer.get();
 	private static final BigIntegerSerializer bigIntegerSerializer = BigIntegerSerializer.get();
@@ -253,8 +226,9 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 			multigetSliceQuery.setColumnFamily(cassandra_column_family_name);
 			multigetSliceQuery.setColumnNames((String[]) fields.toArray());
 			
-			// Fetch data from Cassandra
 			long cassandra_start_time = System.currentTimeMillis();
+			
+			// Fetch data from Cassandra
 			multigetSliceQuery.setKeys(docid_list);
 			
 			QueryResult<Rows<BigInteger, String, String>> result = null;
@@ -285,6 +259,25 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 
 	}
 	
+	////////////////////////////////////////////
+	///	SolrInfoMBean
+	////////////////////////////////////////////
+	
+	@Override
+	public String getDescription() {
+		return "SorlCassandraBridge";
+	}
+	
+	@Override
+	public String getSource() {
+		return "$URL: https://github.com/andraztori/solr-cassandra-bridge $";
+	}
+	
+	@Override
+	public URL[] getDocs() {
+		return null;
+	}
+
 	
 
 }
