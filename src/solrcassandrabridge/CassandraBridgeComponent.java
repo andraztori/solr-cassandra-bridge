@@ -118,7 +118,7 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 
 		// Docid_list is an array of ids to be retrieved
 		List<BigInteger> docid_list = new ArrayList<BigInteger>();
-		// We'll be putting things into output map in the form of {id: {value: key, ...}, ...}
+		// We'll be putting things into output map in the form of {id: {field_name: value, ...}, ...}
 		HashMap<BigInteger, HashMap<String, String>> output_map = new HashMap<BigInteger, HashMap<String, String>>();
 
 		// Iterate through documents and get values of their id field
