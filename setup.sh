@@ -3,9 +3,7 @@ tar -xvzf solr-4.6.1.tgz
 cp -r solr-overwrite/* solr-4.6.1
 
 ant
-p=`pwd`
-# pass the variable p to awk
-awk -v p="$p" '$0~p{ gsub("/home/minmax/zgit/solr-cassandra-bridge",p) }1' <solr-overwrite/example/solr/solr.xml >solr-4.6.1/example/solr/solr.xml
+sed "s@/home/minmax/zgit/solr-cassandra-bridge@$PWD@" solr-overwrite/example/solr/solr.xml >solr-4.6.1/example/solr/solr.xml
 
 
 cd solr-4.6.1/example/
