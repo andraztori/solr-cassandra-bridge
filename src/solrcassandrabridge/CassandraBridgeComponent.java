@@ -39,6 +39,7 @@ import org.apache.solr.common.params.SolrParams;
 
 
 import me.prettyprint.cassandra.serializers.StringSerializer;
+import me.prettyprint.cassandra.serializers.BigIntegerSerializer;
 import me.prettyprint.cassandra.model.AllOneConsistencyLevelPolicy;
 import me.prettyprint.cassandra.service.CassandraHostConfigurator;
 import me.prettyprint.hector.api.Cluster;
@@ -51,11 +52,8 @@ import me.prettyprint.hector.api.factory.HFactory;
 import me.prettyprint.hector.api.query.MultigetSliceQuery;
 import me.prettyprint.hector.api.query.QueryResult;
 
-import me.prettyprint.cassandra.serializers.BigIntegerSerializer;
 
 
-
-import java.util.Iterator;
 
 import org.apache.solr.update.UpdateLog;
 import org.slf4j.Logger;
@@ -65,20 +63,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.ArrayList;
-
 import java.math.BigInteger;
-/**
- * TODO!
- *
- *
- * @since solr 1.3
- */
+
 public class CassandraBridgeComponent extends SearchComponent implements PluginInfoInitialized, SolrCoreAware
 {
 	public static final String COMPONENT_NAME = "solrcassandrabridge";
@@ -232,6 +225,8 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 		}
 	
 		private boolean setup(SolrParams params) {
+			// Get variables from solrconfig.xml
+			
 			String cassandra_cluster_name = params.get("cassandra_cluster_name");
 			String cassandra_servers = params.get("cassandra_servers");
 			String cassandra_keyspace_name = params.get("cassandra_keyspace");
@@ -240,11 +235,12 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 			if(cassandra_cluster_name == null || cassandra_servers == null || cassandra_keyspace_name == null || cassandra_column_family_name == null){
 				log.error("Will not fetch additional documents due to `cassandra_cluster_name`, `cassandra_servers`, `cassandra_keyspace_name` or `cassandra_column_family_name` parameters not being set!");
 				return false;
+				// We should totally fail here, not just return false
 			} else {
 				log.info("Initializing connections to cassandra cluster");
 			}
 			
-			log.info(cassandra_servers);
+			log.info("cassandra_servers: " + String.valueOf(cassandra_servers));
 			cassandra_cluster = HFactory.getOrCreateCluster(cassandra_cluster_name, new CassandraHostConfigurator(cassandra_servers));
 			cassandra_keyspace = HFactory.createKeyspace(cassandra_keyspace_name, cassandra_cluster);
 			cassandra_keyspace.setConsistencyLevelPolicy(new AllOneConsistencyLevelPolicy());
@@ -255,7 +251,7 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 		public void getFieldsFromCassandra(List<BigInteger> docid_list, HashMap<BigInteger, HashMap<String, String>> output_map, List<String> fields) {
 			MultigetSliceQuery<BigInteger, String, String> multigetSliceQuery = HFactory.createMultigetSliceQuery(cassandra_keyspace, bigIntegerSerializer, stringSerializer, stringSerializer);
 			multigetSliceQuery.setColumnFamily(cassandra_column_family_name);
-			multigetSliceQuery.setColumnNames(fields.toArray(new String[fields.size()]));
+			multigetSliceQuery.setColumnNames((String[]) fields.toArray());
 			
 			// Fetch data from Cassandra
 			long cassandra_start_time = System.currentTimeMillis();
@@ -265,13 +261,12 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 			try {
 				result = multigetSliceQuery.execute();
 			} catch(Exception e) {
-				log.warn("Error while executing Cassandra query.", e);
+				log.error("Error while executing Cassandra query.", e);
 				return;
 			}
 
-			Rows<BigInteger, String, String> result_rows = result.get();
 			// turn result into a double map {id : {field_name: value, ...}, ...}
-			for (Row<BigInteger, String, String> row : result_rows) {
+			for (Row<BigInteger, String, String> row : result.get()) {
 				BigInteger key = row.getKey();
 				List<HColumn<String, String>> column_slice = row.getColumnSlice().getColumns();
 				for (HColumn<String, String> column: column_slice) {
