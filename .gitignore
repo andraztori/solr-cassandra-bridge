@@ -1,0 +1,17 @@
+.project
+.pydevproject
+.settings
+.ropeproject
+*.pyc
+reps/localsettings.py
+reps/celeryconfig.py
+*.DS_Store
+*~
+reps/partners/reports/*
+reps/posts/csv/*
+*.swp
+node_modules
+DEADJOE
+.ropeproject
+reps/deeplog
+reps/pysandra-tmp
