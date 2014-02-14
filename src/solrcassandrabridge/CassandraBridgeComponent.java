@@ -24,18 +24,16 @@ import org.apache.solr.handler.component.ShardResponse;
 import org.apache.solr.handler.component.ShardDoc;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.util.NamedList;
-import org.apache.solr.search.QParser;
-import org.apache.solr.search.SyntaxError;
 import org.apache.solr.util.SolrPluginUtils;
 import org.apache.solr.util.plugin.PluginInfoInitialized;
 import org.apache.solr.util.plugin.SolrCoreAware;
 import org.apache.solr.core.PluginInfo;
 import org.apache.solr.core.SolrCore;
-import org.apache.solr.search.DocList;
-import org.apache.solr.search.DocListAndSet;
-import org.apache.solr.search.DocIterator;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrDocument;
+import org.apache.solr.search.SolrReturnFields;
+import org.apache.solr.search.ReturnFields;
+
 import org.apache.solr.common.params.SolrParams;
 
 
@@ -87,17 +85,25 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 	private PluginInfo info = PluginInfo.EMPTY_INFO;
 	public static Logger log = LoggerFactory.getLogger(CassandraBridgeComponent.class);
 	
-	private static final StringSerializer stringSerializer = StringSerializer.get();
-	private static final BigIntegerSerializer bigIntegerSerializer = BigIntegerSerializer.get();
+	private String key_field_name;				// from solrconfig.xml  -- which key will be used to map between solr and cassandra
+	private HashSet<String> bridged_fields;			// from solrconfig.xml 	-- which fields are allowed
 	
-	SolrParams params;
+	CassandraConnector cassandraConnector;			// Here we keep the connection to cassandra and auxilary functions
 	
 	@Override
 	public void init(PluginInfo info) {
 		this.info = info;
-		setupCassandra(SolrParams.toSolrParams(info.initArgs));
-		log.warn("A");
-		log.info("xxxB");
+		
+		// Parse necessary parameters from solrconfig.xml section
+		SolrParams params = SolrParams.toSolrParams(info.initArgs);
+		bridged_fields = new HashSet<String>(((NamedList)info.initArgs.get("bridged_fields")).getAll("name"));
+		key_field_name = params.get("key_field_name");
+
+		log.info("bridged_fields: " + String.valueOf(bridged_fields));
+		log.info("key_field_name: " + key_field_name);
+		cassandraConnector = this.new CassandraConnector();
+		// Start cassandra connection, some parameters from solrconfig.xml are used
+		cassandraConnector.setup(params);
 		
 	}
 
@@ -105,7 +111,6 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 	public void prepare(ResponseBuilder rb) throws IOException {
 		log.warn("ACC");
 		log.info("BDDd");
-		params = rb.req.getParams();
 	}
 
 	@Override
@@ -115,84 +120,51 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 	}
 
 
-	public void getFieldsFromCassandra(List<BigInteger> docid_list, HashMap<BigInteger, HashMap<String, String>> output_map) {
-		MultigetSliceQuery<BigInteger, String, String> multigetSliceQuery = HFactory.createMultigetSliceQuery(cassandra_keyspace, bigIntegerSerializer, stringSerializer, stringSerializer);
-		multigetSliceQuery.setColumnFamily(cassandra_column_family_name);
-		multigetSliceQuery.setColumnNames("title", "body");
-		
-		// Fetch retweets data from Cassandra
-		long cassandra_start_time = System.currentTimeMillis();
-		multigetSliceQuery.setKeys(docid_list);
-		
-		QueryResult<Rows<BigInteger, String, String>> result = null;
-		try {
-			result = multigetSliceQuery.execute();
-		} catch(Exception e) {
-			log.warn("Error while executing Cassandra query.", e);
-			return;
-		}
-
-		Rows<BigInteger, String, String> result_rows = result.get();
-		// turn result into a map
-		for (Row<BigInteger, String, String> row : result_rows) {
-			BigInteger key = row.getKey();
-			ColumnSlice<String, String> column_slice = row.getColumnSlice();
-			HColumn<String, String> title_column = column_slice.getColumnByName("title");
-			HColumn<String, String> text_column = column_slice.getColumnByName("body");
-			if (title_column != null)
-			{
-				log.info(title_column.getValue());
-				output_map.get(key).put("title", title_column.getValue());
-			}
-			if (text_column != null)
-			{
-				output_map.get(key).put("body", text_column.getValue());
-				log.info(text_column.getValue());
-			}
-		}
-		
-		long cassandra_end_time = System.currentTimeMillis();
-		log.info("Requested " + docid_list.size() + " documents from Cassandra. The request took " + (cassandra_end_time - cassandra_start_time) + " miliseconds.");
-
-	}
 
 	@Override
 	public void process(ResponseBuilder rb) throws IOException {
-			
-		log.info("process()");
+		
+		// First we need to get Documents, so we get the "id" of the field
 		Set<String> fields = new HashSet<String>();
-		fields.add("id");
-		SolrDocumentList docs = SolrPluginUtils.docListToSolrDocumentList(
-			rb.getResults().docList, 
-			rb.req.getSearcher(), 
-			fields,
-			null );
+		fields.add(key_field_name);
+		SolrDocumentList docs = SolrPluginUtils.docListToSolrDocumentList(rb.getResults().docList, rb.req.getSearcher(), fields, null );
 
+		// Docid_list is an array of ids to be retrieved
 		List<BigInteger> docid_list = new ArrayList<BigInteger>();
-
+		// We'll be putting things into output map in the form of {id: {value: key, ...}, ...}
 		HashMap<BigInteger, HashMap<String, String>> output_map = new HashMap<BigInteger, HashMap<String, String>>();
 
+		// Iterate through documents and get values of their id field
 		for( SolrDocument doc : docs ) {
-			int docid = (int)doc.getFieldValue("id");
-			log.info(String.valueOf(docid));
+			int docid = (int)doc.getFieldValue(key_field_name);
 			docid_list.add(BigInteger.valueOf(docid));
-			// prepare an output map
+			// prepare an output map for this id - empty hashmaps to be filled
 			output_map.put(BigInteger.valueOf(docid), new HashMap<String, String>());
 		}
+				
+		// Intersection of requested fields and bridged fields is what we will ask cassandra for
+		ReturnFields returnFields = new SolrReturnFields( rb.req );
+		Set<String> cassandra_fields = returnFields.getLuceneFieldNames();
+		cassandra_fields.retainAll(bridged_fields);
+		
+		// Get specific fields from cassandra to output_map
+		cassandraConnector.getFieldsFromCassandra(docid_list, output_map, new ArrayList<String>(cassandra_fields));
 
-		getFieldsFromCassandra(docid_list, output_map);
-
+		// Iterate through documents for the second time
+		// Add the fields that cassandra returned
+		// We could skip intermediate map, but we prefer separation of code messing with cassandra from code messing with solr structures
 		for( SolrDocument doc : docs ) {
-			int docid = (int)doc.getFieldValue("id");
-			log.info(String.valueOf(docid));
+			int docid = (int)doc.getFieldValue(key_field_name);
 			for (Map.Entry<String, String> entry : output_map.get(BigInteger.valueOf(docid)).entrySet()){
 				doc.setField(entry.getKey(), entry.getValue());
-			}
+			}	
 		}		  
 
+		/// We replace the current response
 		NamedList vals = rb.rsp.getValues();
 		int idx = vals.indexOf( "response", 0 );
 		if( idx >= 0 ) {
+			// I am pretty sure we always take this code path
 			log.debug("Replacing DocList with SolrDocumentList " + docs.size());
 			vals.setVal( idx, docs );
 		}
@@ -245,44 +217,79 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 
 
 
-	private Cluster cassandra_cluster;
-	private Keyspace cassandra_keyspace;
-	private String cassandra_column_family_name;
+	// Java does not allow static declarations in subclasses, so we declare then here
+	private static final StringSerializer stringSerializer = StringSerializer.get();
+	private static final BigIntegerSerializer bigIntegerSerializer = BigIntegerSerializer.get();
 	
-	private boolean setupCassandra(SolrParams params) {
-		String cassandra_cluster_name = params.get("cassandra_cluster_name");
-		log.info(cassandra_cluster_name);
-		String cassandra_servers = params.get("cassandra_servers");
-		String cassandra_keyspace_name = params.get("cassandra_keyspace");
-		cassandra_column_family_name = params.get("cassandra_column_family");
+	// Class dealing with cassandra
+	class CassandraConnector {
 		
-		if(cassandra_cluster_name == null || cassandra_servers == null || cassandra_keyspace_name == null || cassandra_column_family_name == null){
-			log.warn("Will not fetch additional documents due to `cassandra_cluster_name` and/or `cassandra_servers` parameters are not set!");
-			return false;
+		private Cluster cassandra_cluster;
+		private Keyspace cassandra_keyspace;
+		private String cassandra_column_family_name;
+	
+		public CassandraConnector() {
+		}
+	
+		private boolean setup(SolrParams params) {
+			String cassandra_cluster_name = params.get("cassandra_cluster_name");
+			String cassandra_servers = params.get("cassandra_servers");
+			String cassandra_keyspace_name = params.get("cassandra_keyspace");
+			cassandra_column_family_name = params.get("cassandra_column_family");
+			
+			if(cassandra_cluster_name == null || cassandra_servers == null || cassandra_keyspace_name == null || cassandra_column_family_name == null){
+				log.error("Will not fetch additional documents due to `cassandra_cluster_name`, `cassandra_servers`, `cassandra_keyspace_name` or `cassandra_column_family_name` parameters not being set!");
+				return false;
+			} else {
+				log.info("Initializing connections to cassandra cluster");
+			}
+			
+			log.info(cassandra_servers);
+			cassandra_cluster = HFactory.getOrCreateCluster(cassandra_cluster_name, new CassandraHostConfigurator(cassandra_servers));
+			cassandra_keyspace = HFactory.createKeyspace(cassandra_keyspace_name, cassandra_cluster);
+			cassandra_keyspace.setConsistencyLevelPolicy(new AllOneConsistencyLevelPolicy());
+			log.info("Cassandra cluster connections established");
+			return true;
 		}
 		
-		cassandra_cluster = HFactory.getOrCreateCluster(cassandra_cluster_name, new CassandraHostConfigurator(cassandra_servers));
-		cassandra_keyspace = HFactory.createKeyspace(cassandra_keyspace_name, cassandra_cluster);
-		cassandra_keyspace.setConsistencyLevelPolicy(new AllOneConsistencyLevelPolicy());
-		
-		return true;
+		public void getFieldsFromCassandra(List<BigInteger> docid_list, HashMap<BigInteger, HashMap<String, String>> output_map, List<String> fields) {
+			MultigetSliceQuery<BigInteger, String, String> multigetSliceQuery = HFactory.createMultigetSliceQuery(cassandra_keyspace, bigIntegerSerializer, stringSerializer, stringSerializer);
+			multigetSliceQuery.setColumnFamily(cassandra_column_family_name);
+			multigetSliceQuery.setColumnNames(fields.toArray(new String[fields.size()]));
+			
+			// Fetch data from Cassandra
+			long cassandra_start_time = System.currentTimeMillis();
+			multigetSliceQuery.setKeys(docid_list);
+			
+			QueryResult<Rows<BigInteger, String, String>> result = null;
+			try {
+				result = multigetSliceQuery.execute();
+			} catch(Exception e) {
+				log.warn("Error while executing Cassandra query.", e);
+				return;
+			}
+
+			Rows<BigInteger, String, String> result_rows = result.get();
+			// turn result into a double map {id : {field_name: value, ...}, ...}
+			for (Row<BigInteger, String, String> row : result_rows) {
+				BigInteger key = row.getKey();
+				List<HColumn<String, String>> column_slice = row.getColumnSlice().getColumns();
+				for (HColumn<String, String> column: column_slice) {
+					String field_name = column.getName();
+					String field_value = column.getValue();
+					if (field_value != null)
+					{
+						output_map.get(key).put(field_name, field_value);
+					}
+				}
+			}
+			
+			long cassandra_end_time = System.currentTimeMillis();
+			log.info("Requested " + docid_list.size() + " documents from Cassandra. The request took " + (cassandra_end_time - cassandra_start_time) + " miliseconds.");
+		}
+
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	
+	
 
 }

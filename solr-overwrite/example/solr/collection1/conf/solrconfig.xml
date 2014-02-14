@@ -1250,9 +1250,15 @@
      -->
   <searchComponent name="solrCassandraBridge" class="solrcassandrabridge.CassandraBridgeComponent">
 	<lst name="bridged_fields">
-		<str name="field_name">text</str>
-		<str name="field_name">other_field</str>
+		<str name="name">text</str>
+		<str name="name">body</str>
 	</lst>
+	
+	<!-- field in solr schema that is used as a key when querying into
+	cassandra. Has to be integer! -->
+	<str name="key_field_name">id</str>
+
+	<!-- Cassandra options -->
 	<str name="cassandra_cluster_name">ClassyCassie</str>
 	<str name="cassandra_servers">blue01:9160,blue02:9160,blue03:9160</str>
 	<str name="cassandra_keyspace">articles</str>
