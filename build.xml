@@ -26,8 +26,7 @@
 		<javac srcdir="${src}/java" destdir="${build}/java" classpathref="lib.path"/>
 		<javac srcdir="${src}/test" destdir="${build}/test" classpathref="lib.path"/>
 		<copy todir="${build}/test">
-			<fileset dir="${src}/test">
-				<include name="log4j.properties"/>
+			<fileset dir="${src}/test-files">
 			</fileset>
 		</copy>
 		<!-- <compilerarg value="-Xlint"/> -->
