@@ -41,7 +41,7 @@
     <int name="socketTimeout">${socketTimeout:0}</int>
     <int name="connTimeout">${connTimeout:0}</int>
   </shardHandlerFactory>
-  <str name="sharedLib">/home/minmax/zgit/solr-cassandra-bridge/dist/lib</str>
+  <str name="sharedLib">/home/minmax/zgit/solr-cassandra-bridge/target/</str>
     
 
 </solr>
