@@ -59,7 +59,7 @@
 
 	<target name="test" depends="dist">
 		<mkdir dir="${build}/JUnitTest"/>
-		<junit fork="yes" forkmode="perBatch" haltonfailure="no" haltonerror="no">
+		<junit fork="yes" forkmode="perBatch" haltonfailure="no" haltonerror="no" showoutput="yes">
 			<jvmarg value="-Xmx600M"/>
 			<assertions> <enable/> </assertions>
 			<!-- other jvmargs -->

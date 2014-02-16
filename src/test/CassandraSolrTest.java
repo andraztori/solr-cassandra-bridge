@@ -17,8 +17,8 @@ public class CassandraSolrTest extends SolrTestCaseJ4
 {
 
 	
-///	@Rule
-//	public CassandraUnit cassandraUnit = new CassandraUnit(new ClassPathJsonDataSet("cassandra-schema.json"));
+	@Rule
+	public CassandraUnit cassandraUnit = new CassandraUnit(new ClassPathJsonDataSet("cassandra-schema.json"));
 	
 	
 	@BeforeClass
