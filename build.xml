@@ -55,9 +55,14 @@
 			<!-- other jvmargs -->
 
 			<classpath>
+				
+				<fileset dir="${dist}/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+				<!--
 				<pathelement path="${dist}/lib" />
 				<pathelement path="${dist}/lib/junit-4.11.jar" />
-				<pathelement path="${dist}/lib/hamcrest-core-1.3.jar" />
+				<pathelement path="${dist}/lib/hamcrest-core-1.3.jar" />-->
 				<pathelement path="${solr.dir}/dist" />
 			</classpath>
 			<classpath path="${dist}/lib/solrcassandrabridge-test.jar"/>
