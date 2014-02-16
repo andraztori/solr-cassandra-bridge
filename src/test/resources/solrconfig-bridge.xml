@@ -1250,7 +1250,7 @@
      -->
   <searchComponent name="solrCassandraBridge" class="com.zemanta.solrcassandrabridge.CassandraBridgeComponent">
 	<lst name="bridged_fields">
-		<str name="name">text</str>
+		<str name="name">title</str>
 		<str name="name">body</str>
 	</lst>
 	

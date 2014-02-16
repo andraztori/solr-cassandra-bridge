@@ -29,16 +29,15 @@ public class CassandraSolrTest extends SolrTestCaseJ4
 	public static void beforeClass() throws Exception {
 		initCore("solrconfig-bridge.xml","schema.xml");
 
-		EmbeddedCassandraServerHelper.startEmbeddedCassandra();
-		dataLoader.load(new ClassPathJsonDataSet("cassandra-schema.json"));
+		//EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+		//dataLoader.load(new ClassPathJsonDataSet("cassandra-schema.json"));
 		log.info("aAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");  
 	}
 
 	@AfterClass
 	public static void after() throws Exception {	
-		EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
-		dataLoader.shutdown();
-		
+		//EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
+		//dataLoader.shutdown();
 		log.info("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBb");  
 	}
           
