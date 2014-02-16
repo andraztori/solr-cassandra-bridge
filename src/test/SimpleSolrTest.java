@@ -10,6 +10,14 @@ import org.junit.BeforeClass;
 
 public class SimpleSolrTest extends SolrTestCaseJ4
 {
+	@BeforeClass
+	public static void beforeClass() throws Exception {
+		//initCore("solr/crazy-path-to-config.xml","solr/crazy-path-to-schema.xml");
+		initCore("solrconfig.xml","schema.xml");
+		
+	}
+          
+
 	@Test
 	public void check()
 	{
