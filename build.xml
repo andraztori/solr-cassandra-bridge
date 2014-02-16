@@ -6,9 +6,15 @@
 	<property name="build" location="build"/>
 	<property name="dist"	location="dist"/>
 	<property name="lib"	location="lib"/>
+	<property name="testlib"	location="testlib"/>
 	<path id="lib.path">
 		<fileset dir="${solr.dir}/dist" includes="**/*.jar"/>
 		<fileset dir="${lib}" includes="**/*.jar"/>
+	</path>
+	<path id="lib.path.tests">
+		<fileset dir="${solr.dir}/dist" includes="**/*.jar"/>
+		<fileset dir="${lib}" includes="**/*.jar"/>
+		<fileset dir="testlib/" includes="**/*.jar"/>
 	</path>
 
 
@@ -23,8 +29,8 @@
 						 
 	<target name="compile" depends="init" description="compile the source " >
 		<!-- Compile the java code from ${src} into ${build} -->
-		<javac srcdir="${src}/java" destdir="${build}/java" classpathref="lib.path"/>
-		<javac srcdir="${src}/test" destdir="${build}/test" classpathref="lib.path"/>
+		<javac srcdir="${src}/java" destdir="${build}/java" classpathref="lib.path" debug="true"  debuglevel="lines,vars,source"/>
+		<javac srcdir="${src}/test" destdir="${build}/test" classpathref="lib.path.tests" debug="true"  debuglevel="lines,vars,source"/>
 		<copy todir="${build}/test">
 			<fileset dir="${src}/test-files">
 			</fileset>
@@ -61,6 +67,9 @@
 			<classpath>
 				
 				<fileset dir="${dist}/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+				<fileset dir="testlib">
 					<include name="**/*.jar"/>
 				</fileset>
 				<fileset dir="${solr.dir}/dist">

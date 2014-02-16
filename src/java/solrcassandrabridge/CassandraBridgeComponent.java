@@ -28,12 +28,13 @@ import org.apache.solr.util.SolrPluginUtils;
 import org.apache.solr.util.plugin.PluginInfoInitialized;
 import org.apache.solr.util.plugin.SolrCoreAware;
 import org.apache.solr.core.PluginInfo;
+import org.apache.solr.core.CloseHook;
 import org.apache.solr.core.SolrCore;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.search.SolrReturnFields;
 import org.apache.solr.search.ReturnFields;
-
+import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.SolrParams;
 
 
@@ -91,6 +92,23 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 		cassandraConnector = this.new CassandraConnector();
 		// Start cassandra connection, some parameters from solrconfig.xml are used
 		cassandraConnector.setup(params);
+
+	}
+	
+	@Override
+	public void inform(SolrCore core) {
+		log.warn("A2");
+		log.info("B2");
+		core.addCloseHook(new CloseHook() {
+			@Override
+			public void preClose(SolrCore core) {
+				cassandraConnector.close();
+			}
+			@Override
+			public void postClose(SolrCore core) {
+			}
+      		});
+
 		
 	}
 
@@ -99,13 +117,6 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 		log.warn("ACC");
 		log.info("BDDd");
 	}
-
-	@Override
-	public void inform(SolrCore core) {
-		log.warn("A2");
-		log.info("B2");
-	}
-
 
 
 	@Override
@@ -130,9 +141,15 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 		}
 				
 		// Intersection of requested fields and bridged fields is what we will ask cassandra for
-		ReturnFields returnFields = new SolrReturnFields( rb.req );
-		Set<String> cassandra_fields = returnFields.getLuceneFieldNames();
-		cassandra_fields.retainAll(bridged_fields);
+		ReturnFields returnFields = new SolrReturnFields(rb.req.getParams().getParams(CommonParams.FL), rb.req );
+		Set<String> cassandra_fields;
+		if (returnFields.wantsAllFields()) {
+			cassandra_fields = bridged_fields;
+		} else {
+			cassandra_fields = returnFields.getLuceneFieldNames();
+			cassandra_fields.retainAll(bridged_fields);
+		}
+		log.warn("Fields." + String.valueOf(cassandra_fields));
 		
 		// Get specific fields from cassandra to output_map
 		cassandraConnector.getFieldsFromCassandra(docid_list, output_map, new ArrayList<String>(cassandra_fields));
@@ -224,7 +241,7 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 		public void getFieldsFromCassandra(List<BigInteger> docid_list, HashMap<BigInteger, HashMap<String, String>> output_map, List<String> fields) {
 			MultigetSliceQuery<BigInteger, String, String> multigetSliceQuery = HFactory.createMultigetSliceQuery(cassandra_keyspace, bigIntegerSerializer, stringSerializer, stringSerializer);
 			multigetSliceQuery.setColumnFamily(cassandra_column_family_name);
-			multigetSliceQuery.setColumnNames((String[]) fields.toArray());
+			multigetSliceQuery.setColumnNames(fields.toArray(new String[fields.size()]));
 			
 			long cassandra_start_time = System.currentTimeMillis();
 			
@@ -257,6 +274,12 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 			log.info("Requested " + docid_list.size() + " documents from Cassandra. The request took " + (cassandra_end_time - cassandra_start_time) + " miliseconds.");
 		}
 
+		public void close() {
+			if (cassandra_cluster != null) {
+				cassandra_cluster.getConnectionManager().shutdown();
+			}
+		}
+
 	}
 	
 	////////////////////////////////////////////
@@ -277,7 +300,5 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 	public URL[] getDocs() {
 		return null;
 	}
-
-	
 
 }
