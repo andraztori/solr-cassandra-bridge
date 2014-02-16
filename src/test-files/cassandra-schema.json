@@ -3,9 +3,11 @@
 	"strategy" : "org.apache.cassandra.locator.SimpleStrategy",
 	"columnFamilies" : [{
 		"name" : "articles",
-		"keyType" : "LongType",
+		"keyType": "LongType",
+		"comparatorType": "UTF8Type",
+		"defaultColumnValueType": "UTF8Type",
 		"rows" : [{
-			"key" : "long(1001)",
+			"key" : "1001",
 			"columns" : [{
 				"name" : "title",
 				"value" : "Article1 Title1"
@@ -16,7 +18,7 @@
 			}]
 		},
 		{
-			"key" : "long(1002)",
+			"key" : "1002",
 			"columns" : [{
 				"name" : "title",
 				"value" : "Article2 Title2"
