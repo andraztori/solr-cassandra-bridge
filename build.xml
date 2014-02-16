@@ -25,6 +25,11 @@
 		<!-- Compile the java code from ${src} into ${build} -->
 		<javac srcdir="${src}/java" destdir="${build}/java" classpathref="lib.path"/>
 		<javac srcdir="${src}/test" destdir="${build}/test" classpathref="lib.path"/>
+		<copy todir="${build}/test">
+			<fileset dir="${src}/test">
+				<include name="log4j.properties"/>
+			</fileset>
+		</copy>
 		<!-- <compilerarg value="-Xlint"/> -->
 	</target>
 
@@ -49,9 +54,9 @@
 
 	<target name="test" depends="dist">
 		<mkdir dir="${build}/JUnitTest"/>
-		<junit fork="yes" forkmode="perBatch">
+		<junit fork="yes" forkmode="perBatch" haltonfailure="no" haltonerror="no">
 			<jvmarg value="-Xmx600M"/>
-
+			<assertions> <enable/> </assertions>
 			<!-- other jvmargs -->
 
 			<classpath>
@@ -59,11 +64,19 @@
 				<fileset dir="${dist}/lib">
 					<include name="**/*.jar"/>
 				</fileset>
+				<fileset dir="${solr.dir}/dist">
+					<include name="**/*.jar"/>
+				</fileset>
+				<fileset dir="${solr.dir}/example/solr-webapp/webapp/WEB-INF/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+				
+				
 				<!--
 				<pathelement path="${dist}/lib" />
 				<pathelement path="${dist}/lib/junit-4.11.jar" />
-				<pathelement path="${dist}/lib/hamcrest-core-1.3.jar" />-->
-				<pathelement path="${solr.dir}/dist" />
+				<pathelement path="${dist}/lib/hamcrest-core-1.3.jar" />
+				<pathelement path="${solr.dir}/dist" />-->
 			</classpath>
 			<classpath path="${dist}/lib/solrcassandrabridge-test.jar"/>
 
