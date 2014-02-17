@@ -1,3 +1,4 @@
+package com.zemanta.solrcassandrabridge;
 
 import org.junit.Test;
 import static org.junit.Assert.*;

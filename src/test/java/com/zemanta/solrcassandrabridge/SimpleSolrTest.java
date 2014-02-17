@@ -1,9 +1,9 @@
+package com.zemanta.solrcassandrabridge;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.request.*;
-import org.apache.solr.util.*;
 import org.apache.solr.SolrTestCaseJ4;
 import org.junit.BeforeClass;
 import org.junit.BeforeClass;

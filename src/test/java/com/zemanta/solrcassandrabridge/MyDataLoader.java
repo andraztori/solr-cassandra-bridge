@@ -1,3 +1,4 @@
+package com.zemanta.solrcassandrabridge;
 import org.cassandraunit.CassandraUnit;
 import org.cassandraunit.dataset.json.ClassPathJsonDataSet;
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper;

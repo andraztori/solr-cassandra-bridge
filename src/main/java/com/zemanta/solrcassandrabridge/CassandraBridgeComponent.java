@@ -20,9 +20,6 @@ package com.zemanta.solrcassandrabridge;
 import org.apache.solr.handler.component.SearchComponent;
 import org.apache.solr.handler.component.ResponseBuilder;
 import org.apache.solr.handler.component.ShardRequest;
-import org.apache.solr.handler.component.ShardResponse;
-import org.apache.solr.handler.component.ShardDoc;
-import org.apache.solr.common.SolrException;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.util.SolrPluginUtils;
 import org.apache.solr.util.plugin.PluginInfoInitialized;
@@ -39,20 +36,20 @@ import org.apache.solr.common.params.SolrParams;
 
 
 
+
+
 import me.prettyprint.cassandra.serializers.StringSerializer;
 import me.prettyprint.cassandra.serializers.BigIntegerSerializer;
 import me.prettyprint.cassandra.model.AllOneConsistencyLevelPolicy;
 import me.prettyprint.cassandra.service.CassandraHostConfigurator;
 import me.prettyprint.hector.api.Cluster;
 import me.prettyprint.hector.api.Keyspace;
-import me.prettyprint.hector.api.beans.ColumnSlice;
 import me.prettyprint.hector.api.beans.HColumn;
 import me.prettyprint.hector.api.beans.Row;
 import me.prettyprint.hector.api.beans.Rows;
 import me.prettyprint.hector.api.factory.HFactory;
 import me.prettyprint.hector.api.query.MultigetSliceQuery;
 import me.prettyprint.hector.api.query.QueryResult;
-
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,13 +75,14 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 	
 	CassandraConnector cassandraConnector;			// Here we keep the connection to cassandra and auxilary functions
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void init(PluginInfo info) {
 		this.info = info;
 		
 		// Parse necessary parameters from solrconfig.xml section
 		SolrParams params = SolrParams.toSolrParams(info.initArgs);
-		bridged_fields = new HashSet<String>(((NamedList)info.initArgs.get("bridged_fields")).getAll("name"));
+		bridged_fields = new HashSet<String>(((NamedList<String>)info.initArgs.get("bridged_fields")).getAll("name"));
 		key_field_name = params.get("key_field_name");
 
 		log.info("bridged_fields: " + String.valueOf(bridged_fields));
@@ -165,7 +163,8 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 		}		  
 
 		/// We replace the current response
-		NamedList vals = rb.rsp.getValues();
+		@SuppressWarnings("unchecked")
+		NamedList<SolrDocumentList> vals = rb.rsp.getValues();
 		int idx = vals.indexOf( "response", 0 );
 		if( idx >= 0 ) {
 			// I am pretty sure we always take this code path

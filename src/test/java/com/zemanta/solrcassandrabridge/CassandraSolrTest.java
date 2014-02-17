@@ -1,3 +1,4 @@
+package com.zemanta.solrcassandrabridge;
 import org.junit.Test;
 import org.junit.Rule;
 import static org.junit.Assert.*;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+
 import me.prettyprint.hector.api.Cluster;
 
 public class CassandraSolrTest extends SolrTestCaseJ4
@@ -29,7 +31,7 @@ public class CassandraSolrTest extends SolrTestCaseJ4
 	public static void beforeClass() throws Exception {
 		initCore("solrconfig-bridge.xml","schema.xml");
 
-		//EmbeddedCassandraServerHelper.startEmbeddedCassandra();
+		EmbeddedCassandraServerHelper.startEmbeddedCassandra();
 		//dataLoader.load(new ClassPathJsonDataSet("cassandra-schema.json"));
 		log.info("aAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");  
 	}
