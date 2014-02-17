@@ -1,6 +1,5 @@
 {
 	"name" : "articles",
-	"strategy" : "org.apache.cassandra.locator.SimpleStrategy",
 	"columnFamilies" : [{
 		"name" : "articles",
 		"keyType": "LongType",

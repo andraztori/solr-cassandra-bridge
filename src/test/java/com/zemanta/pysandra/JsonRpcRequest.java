@@ -1,4 +1,7 @@
-package pysandra;
+package com.zemanta.pysandra;
+import java.io.IOException;
+import java.io.StringWriter;
+
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -25,6 +28,11 @@ public class JsonRpcRequest {
 		}
 	}
 
+	public JsonRpcRequest(String command_in, JSONObject param_in) {
+		command = command_in;
+		param = param_in;
+	}
+
 	public JSONObject getParam() {
 		return param;
 	}
@@ -32,6 +40,18 @@ public class JsonRpcRequest {
 	public String getCommand() {
 		return command;
 	}
+	
+	@SuppressWarnings("unchecked")
+	public String toJSON() throws IOException {
+		JSONObject obj = new JSONObject();
+		obj.put("command", this.command);
+		obj.put("param", this.param);
+		StringWriter out = new StringWriter();
+		obj.writeJSONString(out);
+		return out.toString();
+	}
+	
+	
 }
 
 class JsonRpcRequestException extends Exception {
