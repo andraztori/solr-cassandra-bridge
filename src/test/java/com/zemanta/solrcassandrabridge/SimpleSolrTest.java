@@ -14,11 +14,13 @@ import org.slf4j.LoggerFactory;
 
 public class SimpleSolrTest extends SolrTestCaseJ4
 {
+	/*  
+	 * The only function of this test is independently verify environment set-up for solr testing framework
+	 */
 	public static Logger log = LoggerFactory.getLogger(SimpleSolrTest.class);
 
 	@BeforeClass
 	public static void beforeClass() throws Exception {
-		//initCore("solr/crazy-path-to-config.xml","solr/crazy-path-to-schema.xml");
 		initCore("solrconfig-plain.xml","schema.xml");
 		
 	}

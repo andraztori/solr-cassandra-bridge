@@ -19,6 +19,9 @@ import me.prettyprint.hector.api.Cluster;
 
 public class CassandraSolrTest extends SolrTestCaseJ4
 {
+	/* This tests starts a separate cassandra server (cassandraunit via Pysandra)
+	 * and then tests if fields that need to be returned from cassandra are actually returned fro m cassandra
+	 */
 
 	public static Logger log = LoggerFactory.getLogger(CassandraSolrTest.class);
 	private static PysandraUnitClient puc;

@@ -5,11 +5,12 @@ import static org.junit.Assert.*;
 
 public class SimpleTest
 {
+	/*
+	 * Simple dummy test to know test framework works
+	 */
 	@Test
 	public void check()
 	{
-		int a = 1;
-		assert(true);
 		assertEquals(true, true);
 	}
 }
