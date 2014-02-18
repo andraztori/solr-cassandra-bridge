@@ -29,7 +29,6 @@ public class PysandraTest
 	@Test
 	public void check()
 	{
-		int a = 1;
 		assert(true);
 		assertEquals(true, true);
 	}

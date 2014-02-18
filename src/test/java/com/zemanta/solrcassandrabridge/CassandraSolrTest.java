@@ -32,11 +32,41 @@ public class CassandraSolrTest extends SolrTestCaseJ4
 		puc = new PysandraUnitClient();
 		puc.start_process();
 		String current = new java.io.File( "." ).getCanonicalPath();
-		puc.load_data(current + "/target/test-classes/cassandra-schema.json", "json");
 		puc.clean_data();
+		puc.load_data(current + "/target/test-classes/cassandra-schema.json", "json");
 		log.info("Pysandra running, starting solr");
 		initCore("solrconfig-bridge.xml","schema.xml");
 		log.info("Solr core running");
+
+		// Now load the articles into solr 
+		// These two articles have fields "body" and "title" availabe in cassandra 
+		assertU(adoc("id", "1001", 
+				"title", "Article1 title - INDEXED, NOT STORED", 
+				"body", "Article1 body - INDEXED, NOT STORED",
+				"url", "http://www.article1.com/"
+				));
+	
+		assertU(adoc("id", "1002", 
+				"title", "Article2 title - INDEXED, NOT STORED", 
+				"body", "Article2 body - INDEXED, NOT STORED",
+				"url", "http://www.article2.com/"
+				));
+
+		// This one has key, but no fields in cassandra
+		assertU(adoc("id", "1003", 
+				"title", "Article3 title - INDEXED, NOT STORED", 
+				"body", "Article3 body - INDEXED, NOT STORED",
+				"url", "http://www.article3.com/"
+				));
+
+		// This one has no key in cassandra
+		assertU(adoc("id", "1004", 
+				"title", "Article4 title - INDEXED, NOT STORED", 
+				"body", "Article4 body - INDEXED, NOT STORED",
+				"url", "http://www.article4.com/"
+				));
+	    assertU(commit());
+
 	}
 
 	@AfterClass
@@ -47,10 +77,28 @@ public class CassandraSolrTest extends SolrTestCaseJ4
           
 
 	@Test
-	public void check()
+	public void dummyTest()
 	{
-		int a = 1;
 		assert(true);
-		assertEquals(true, true);
+	}
+ 
+	@Test
+	public void docTest()
+	{
+		// Only one article matches!
+		SolrQueryRequest req = lrf.makeRequest( "title:\"article1\"" );
+		assertQ("exaclty one article should be found",
+					req,
+					"//result[@numFound=1]"
+				);
+		assertQ("exaclty one article should be found",
+				req,
+				"//result/doc[1]/int[@name='id'][. ='1001']"
+			);
+		assertQ("exaclty one article should be found",
+				req,
+				"//result/doc[1]/str[@name='title'][. ='Article1 Title1']"
+			);
+			
 	}
 }
