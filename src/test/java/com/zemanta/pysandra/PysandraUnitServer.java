@@ -2,6 +2,8 @@ package com.zemanta.pysandra;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -49,8 +51,8 @@ public class PysandraUnitServer {
 	}
 
 	public static void main(String[] args) throws Exception {
+	//	System.setProperty("log4j.configuration", "file:/tmp/x/l.properties");
 		Logger.getRootLogger().setLevel(Level.OFF);
-		
 		inputReader();
 		
 		System.exit(0); // Without calling exit Cassandra daemon doesnt't exit

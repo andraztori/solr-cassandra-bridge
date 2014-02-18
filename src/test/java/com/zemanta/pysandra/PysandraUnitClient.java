@@ -70,14 +70,13 @@ public class PysandraUnitClient {
 
 	private void start_command() throws Exception {
 		log.debug("Command 'start'");
-		Path tmpdir = Files.createTempDirectory("pysandra");
-		log.debug("Using temporary directory: " + tmpdir.toString());
+		//Path tmpdir = Files.createTempDirectory("pysandra");
+		String tmpdir = "target";
+		log.debug("Using temporary directory: " + tmpdir);
 		JSONObject obj = new JSONObject();
-//		obj.put("tmpdir", tmpdir.toString());
-		obj.put("tmpdir", "/tmp/x");
+		obj.put("tmpdir", tmpdir);
 		String current = new java.io.File( "." ).getCanonicalPath();
 		log.debug("path: " + current);
-//		obj.put("yamlconf", "/home/minmax/zgit/solr-cassandra-bridge/src/test/resources/cu-cassandra.yaml");
 		obj.put("yamlconf", current + "/src/test/resources/cu-cassandra.yaml");
 		send_command("start", obj);
 	}	

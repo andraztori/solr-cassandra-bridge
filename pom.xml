@@ -25,6 +25,13 @@
 			<groupId>me.prettyprint</groupId>
 			<artifactId>hector-core</artifactId>
 			<version>1.0-5</version>
+
+      <exclusions>
+              <exclusion>
+                        <groupId>org.apache.cassandra</groupId>
+                                  <artifactId>cassandra-thrift</artifactId>
+                                          </exclusion>
+                                                </exclusions>
 		</dependency>
 
 		<!-- provided -->
