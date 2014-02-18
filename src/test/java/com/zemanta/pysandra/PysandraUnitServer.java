@@ -51,8 +51,8 @@ public class PysandraUnitServer {
 	}
 
 	public static void main(String[] args) throws Exception {
-	//	System.setProperty("log4j.configuration", "file:/tmp/x/l.properties");
-		Logger.getRootLogger().setLevel(Level.OFF);
+		System.setProperty("log4j.configuration", "file:target/test-classes/log4j.pysandra.properties");
+//		Logger.getRootLogger().setLevel(Level.OFF);
 		inputReader();
 		
 		System.exit(0); // Without calling exit Cassandra daemon doesnt't exit

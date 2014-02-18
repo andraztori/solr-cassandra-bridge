@@ -1,12 +1,8 @@
 package com.zemanta.solrcassandrabridge;
 import org.junit.Test;
 import org.junit.Rule;
-import static org.junit.Assert.*;
 
-import org.cassandraunit.CassandraUnit;
-import org.cassandraunit.dataset.json.ClassPathJsonDataSet;
-import org.cassandraunit.utils.EmbeddedCassandraServerHelper;
-import org.cassandraunit.DataLoader;
+import static org.junit.Assert.*;
 
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.request.*;
@@ -17,7 +13,7 @@ import org.junit.AfterClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+import com.zemanta.pysandra.PysandraUnitClient;
 
 import me.prettyprint.hector.api.Cluster;
 
@@ -25,22 +21,25 @@ public class CassandraSolrTest extends SolrTestCaseJ4
 {
 
 	public static Logger log = LoggerFactory.getLogger(CassandraSolrTest.class);
-	static MyDataLoader dataLoader = new MyDataLoader("TestCluster", "localhost:9171");
-		
+	private static PysandraUnitClient puc;
+	
 	@BeforeClass
 	public static void beforeClass() throws Exception {
-		initCore("solrconfig-bridge.xml","schema.xml");
 
-		EmbeddedCassandraServerHelper.startEmbeddedCassandra();
-		//dataLoader.load(new ClassPathJsonDataSet("cassandra-schema.json"));
-		log.info("aAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");  
+		puc = new PysandraUnitClient();
+		puc.start_process();
+		String current = new java.io.File( "." ).getCanonicalPath();
+		puc.load_data(current + "/target/test-classes/cassandra-schema.json", "json");
+		puc.clean_data();
+		log.info("Pysandra running, starting solr");
+		initCore("solrconfig-bridge.xml","schema.xml");
+		log.info("Solr core running");
 	}
 
 	@AfterClass
 	public static void after() throws Exception {	
-		//EmbeddedCassandraServerHelper.stopEmbeddedCassandra();
-		//dataLoader.shutdown();
-		log.info("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBb");  
+		log.info("Shutting down pysandrat");  
+		puc.stop_process();
 	}
           
 

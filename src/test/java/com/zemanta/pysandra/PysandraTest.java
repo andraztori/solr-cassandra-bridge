@@ -15,12 +15,13 @@ public class PysandraTest
 	public static Logger log = LoggerFactory.getLogger(PysandraTest.class);
 
 	@Test
-	public void just_start() throws Exception {
+	public void pysandraFullTest() throws Exception {
 		PysandraUnitClient puc = new PysandraUnitClient();
 		puc.start_process();
 
 		String current = new java.io.File( "." ).getCanonicalPath();
-		puc.load_data(current + "/src/test/resources/cassandra-schema.json", "json");
+		puc.load_data(current + "/target/test-classes/cassandra-schema.json", "json");
+		puc.clean_data();
 		puc.stop_process();
 	}
 	

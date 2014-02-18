@@ -24,7 +24,7 @@ public class PysandraUnitClient {
 
 	static Process process;
 	
-	private JsonRpcResponse executeCommand(JsonRpcRequest request) {
+	private JsonRpcResponse sendRequestGetResponse(JsonRpcRequest request) {
 		try {
 			String serialized = request.toJSON() + "\n";
 			log.debug("Request:" + serialized);
@@ -32,17 +32,15 @@ public class PysandraUnitClient {
 			out_stream.flush();
 			String response_str = in_reader.readLine();
 			log.debug("Response:" + response_str);
-		//	response_str = "{\"status\":\"ok\",\"statusMsg\":\"\"}";
-			JsonRpcResponse r = new JsonRpcResponse(response_str);
-			return r;
+			return new JsonRpcResponse(response_str);
 		} catch (Exception e) {
 			return new JsonRpcErrorResponse(e.toString());
 		}
 	}
 	
-	private void send_command(String command, JSONObject obj) throws Exception {
+	private void executeCommand(String command, JSONObject obj) throws Exception {
 		JsonRpcRequest request = new JsonRpcRequest(command, obj);
-		JsonRpcResponse response = executeCommand(request);
+		JsonRpcResponse response = sendRequestGetResponse(request);
 		if (!response.isStatusOk()) {
 			log.error("Status not ok: " + response.getStatusMsg());
 			throw new Exception("Response status not ok");
@@ -78,23 +76,23 @@ public class PysandraUnitClient {
 		String current = new java.io.File( "." ).getCanonicalPath();
 		log.debug("path: " + current);
 		obj.put("yamlconf", current + "/src/test/resources/cu-cassandra.yaml");
-		send_command("start", obj);
+		executeCommand("start", obj);
 	}	
 
 	
 	public void stop_process() throws Exception {
-		log.debug("Command 'stop'");
+		log.debug("Command 'stop' starting");
 		JSONObject obj = new JSONObject();
-		send_command("stop", obj);
+		executeCommand("stop", obj);
 		log.debug("Command 'stop' returned, waiting for process termination");
 		process.waitFor();
-		log.debug("Pysandra process terminated");
+		log.debug("Command 'stop' finished");
 		
 	}
 	
 
 	public void load_data(String fileName, String type) throws Exception {
-		log.debug("Command 'load'");
+		log.debug("Command 'load' starting");
 		log.debug("Filename: " + fileName +", type: " + type);
 		JSONObject obj = new JSONObject();
 		obj.put("filename", fileName);
@@ -103,9 +101,17 @@ public class PysandraUnitClient {
 		obj.put("rpc_port", 9171);
 		obj.put("native_transport_port", 9142);
 		
-		send_command("load", obj);
+		executeCommand("load", obj);
 		log.debug("Command 'load' finished");
 		
 	}
-	
+
+
+	public void clean_data() throws Exception {
+		log.debug("Command 'clean' starting");
+		JSONObject obj = new JSONObject();		
+		executeCommand("clean", obj);
+		log.debug("Command 'clean' finished");
+		
+	}
 }
