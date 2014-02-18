@@ -241,7 +241,8 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 			MultigetSliceQuery<BigInteger, String, String> multigetSliceQuery = HFactory.createMultigetSliceQuery(cassandra_keyspace, bigIntegerSerializer, stringSerializer, stringSerializer);
 			multigetSliceQuery.setColumnFamily(cassandra_column_family_name);
 			multigetSliceQuery.setColumnNames(fields.toArray(new String[fields.size()]));
-			
+			log.info("docidlist " + docid_list.toString());
+			log.info("fields " + fields.toString());
 			long cassandra_start_time = System.currentTimeMillis();
 			
 			// Fetch data from Cassandra
@@ -258,12 +259,15 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 			// turn result into a double map {id : {field_name: value, ...}, ...}
 			for (Row<BigInteger, String, String> row : result.get()) {
 				BigInteger key = row.getKey();
+				log.info("aaaaaaaaaaaaaaa" + key.toString());
 				List<HColumn<String, String>> column_slice = row.getColumnSlice().getColumns();
 				for (HColumn<String, String> column: column_slice) {
 					String field_name = column.getName();
 					String field_value = column.getValue();
+					log.info("got pair" + field_name + "    " + field_value);
 					if (field_value != null)
 					{
+						log.info("got pair" + field_name + "    " + field_value);
 						output_map.get(key).put(field_name, field_value);
 					}
 				}

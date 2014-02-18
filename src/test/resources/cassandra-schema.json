@@ -2,11 +2,11 @@
 	"name" : "articles",
 	"columnFamilies" : [{
 		"name" : "articles",
-		"keyType": "LongType",
+		"keyType": "IntegerType",
 		"comparatorType": "UTF8Type",
 		"defaultColumnValueType": "UTF8Type",
 		"rows" : [{
-			"key" : "1001",
+			"key" : "integer(1001)",
 			"columns" : [{
 				"name" : "title",
 				"value" : "Article1 Title1"

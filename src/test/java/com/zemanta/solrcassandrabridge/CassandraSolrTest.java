@@ -86,15 +86,16 @@ public class CassandraSolrTest extends SolrTestCaseJ4
 	public void docTest()
 	{
 		// Only one article matches!
-		SolrQueryRequest req = lrf.makeRequest( "title:\"article1\"" );
+		SolrQueryRequest req;
+		req = lrf.makeRequest("q", "title:\"article1\"" );
 		assertQ("exaclty one article should be found",
 					req,
-					"//result[@numFound=1]"
+					"//result[@numFound=1]",
+					"//result/doc[1]/int[@name='id'][. ='1001']"
 				);
-		assertQ("exaclty one article should be found",
-				req,
-				"//result/doc[1]/int[@name='id'][. ='1001']"
-			);
+
+		
+		req = lrf.makeRequest("q", "title:\"article1\"", "fl", "id,body,title");
 		assertQ("exaclty one article should be found",
 				req,
 				"//result/doc[1]/str[@name='title'][. ='Article1 Title1']"
@@ -102,3 +103,4 @@ public class CassandraSolrTest extends SolrTestCaseJ4
 			
 	}
 }
+
