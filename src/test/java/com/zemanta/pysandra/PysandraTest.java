@@ -20,10 +20,11 @@ public class PysandraTest
 		puc.start_process();
 
 		String current = new java.io.File( "." ).getCanonicalPath();
-		puc.load_data(current + "/target/test-classes/cassandra-schema.json", "json");
+		puc.load_data_cql(current + "/target/test-classes/cassandra-schema.cql");
 		puc.clean_data();
 		puc.stop_process();
 	}
+	
 	
 	
 	@Test

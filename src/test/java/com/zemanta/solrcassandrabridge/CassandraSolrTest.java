@@ -33,7 +33,7 @@ public class CassandraSolrTest extends SolrTestCaseJ4
 		puc.start_process();
 		String current = new java.io.File( "." ).getCanonicalPath();
 		puc.clean_data();
-		puc.load_data(current + "/target/test-classes/cassandra-schema.json", "json");
+		puc.load_data_cql(current + "/target/test-classes/cassandra-schema.cql");
 		log.info("Pysandra running, starting solr");
 		initCore("solrconfig-bridge.xml","schema.xml");
 		log.info("Solr core running");
@@ -93,7 +93,6 @@ public class CassandraSolrTest extends SolrTestCaseJ4
 					"//result[@numFound=1]",
 					"//result/doc[1]/int[@name='id'][. ='1001']"
 				);
-
 		
 		req = lrf.makeRequest("q", "title:\"article1\"", "fl", "id,body,title");
 		assertQ("exaclty one article should be found",

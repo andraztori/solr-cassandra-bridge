@@ -229,6 +229,7 @@
 	<!-- Cassandra options -->
 	<str name="cassandra_cluster_name">ClassyCassie</str>
 	<str name="cassandra_servers">localhost:9171</str>
+<!--	<str name="cassandra_servers">blue01.zemanta.vpn:9160</str>-->
 	<str name="cassandra_keyspace">articles</str>
 	<str name="cassandra_column_family">articles</str>
   </searchComponent>

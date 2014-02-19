@@ -40,6 +40,7 @@ import org.apache.solr.common.params.SolrParams;
 
 import me.prettyprint.cassandra.serializers.StringSerializer;
 import me.prettyprint.cassandra.serializers.BigIntegerSerializer;
+import me.prettyprint.cassandra.serializers.IntegerSerializer;
 import me.prettyprint.cassandra.model.AllOneConsistencyLevelPolicy;
 import me.prettyprint.cassandra.service.CassandraHostConfigurator;
 import me.prettyprint.hector.api.Cluster;
@@ -202,6 +203,7 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 	// Java does not allow static declarations in subclasses, so we declare then here
 	private static final StringSerializer stringSerializer = StringSerializer.get();
 	private static final BigIntegerSerializer bigIntegerSerializer = BigIntegerSerializer.get();
+	private static final IntegerSerializer integerSerializer = IntegerSerializer.get();
 	
 	// Class dealing with cassandra
 	class CassandraConnector {
@@ -239,13 +241,16 @@ public class CassandraBridgeComponent extends SearchComponent implements PluginI
 		
 		public void getFieldsFromCassandra(List<BigInteger> docid_list, HashMap<BigInteger, HashMap<String, String>> output_map, List<String> fields) {
 			MultigetSliceQuery<BigInteger, String, String> multigetSliceQuery = HFactory.createMultigetSliceQuery(cassandra_keyspace, bigIntegerSerializer, stringSerializer, stringSerializer);
+		
+			
 			multigetSliceQuery.setColumnFamily(cassandra_column_family_name);
 			multigetSliceQuery.setColumnNames(fields.toArray(new String[fields.size()]));
 			log.info("docidlist " + docid_list.toString());
 			log.info("fields " + fields.toString());
 			long cassandra_start_time = System.currentTimeMillis();
 			
-			// Fetch data from Cassandra
+			// Fetch data from Cassandra	
+
 			multigetSliceQuery.setKeys(docid_list);
 			
 			QueryResult<Rows<BigInteger, String, String>> result = null;

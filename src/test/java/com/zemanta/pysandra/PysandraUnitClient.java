@@ -22,7 +22,7 @@ public class PysandraUnitClient {
 	}
 		
 
-	static Process process;
+	static public Process process;
 	
 	private JsonRpcResponse sendRequestGetResponse(JsonRpcRequest request) {
 		try {
@@ -91,12 +91,13 @@ public class PysandraUnitClient {
 	}
 	
 
-	public void load_data(String fileName, String type) throws Exception {
+	public void load_data_cql(String fileName) throws Exception {
+		/* We only support CQL since this is the only thing that reliably worked in cassandra-unit */
 		log.debug("Command 'load' starting");
-		log.debug("Filename: " + fileName +", type: " + type);
+		log.debug("Filename: " + fileName);
 		JSONObject obj = new JSONObject();
 		obj.put("filename", fileName);
-		obj.put("type", type);
+		obj.put("type", "cql");
 		obj.put("host", "localhost");
 		obj.put("rpc_port", 9171);
 		obj.put("native_transport_port", 9142);
